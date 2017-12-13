@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project Tools">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.workspace" value="${dir.buildfile}/../.."/>
+    <property name="dir.jarfile" value="${dir.workspace}/Tools/export2"/>
+    <target name="create_run_jar">
+        <jar destfile="${dir.jarfile}/DumpTool.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="com.ibm.jp.isol.tetusato.db.DumpTool"/>
+                <attribute name="Class-Path" value="db2jcc4.jar"/>
+            </manifest>
+            <fileset dir="${dir.workspace}/Tools/bin" includes="**/db/**/*.class"/>
+            <!--zipfileset excludes="META-INF/*.SF" src="/Applications/Eclipse-MARS.app/Contents/Eclipse/plugins/org.junit_4.12.0.v201504281640/junit.jar"/-->
+            <!--zipfileset excludes="META-INF/*.SF" src="/Applications/Eclipse-MARS.app/Contents/Eclipse/plugins/org.hamcrest.core_1.3.0.v201303031735.jar"/-->
+            <!--zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/jars/db2jcc4.jar"/ -->
+        </jar>
+    </target>
+</project>
