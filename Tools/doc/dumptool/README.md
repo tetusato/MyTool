@@ -90,3 +90,13 @@ __書式2__ : 出力先ディレクトリへ保存する、出力先ディレク
    ```
 
 この場合、ファイル内にはテーブル名の行があるので、完全な CSV ではない。
+
+__書式4__ : ロードデータとして取得したいので NULL は引用符なしの空状態で出力したい
+
+   java -DbrindNull=true -jar DumpTool.jar <プロパティーファイル名> <出力先ディレクトリ名> [対象テーブル名1[ 対象テーブル名2[ ...]]]
+
+　具体例:
+
+   ```
+   java -DbrindNull=true -jar DumpTool.jar mysettings.properties work EMP
+   ```
