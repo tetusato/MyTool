@@ -14,8 +14,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
@@ -137,7 +135,12 @@ public class DbTables {
                 String fileName = arguments.getFormattedFileName(date, tableName);
                 System.out.println(String.format("#### %s ####", fileName));
                 String select = String.join("", "SELECT ",
-                        entry.getValue().stream().map(c -> c.getName()).collect(Collectors.joining(",")), " FROM ",
+                        entry.getValue().stream().map(c -> {
+                            if (c.getColType() == ColType.TIMESTMP) {
+                                return String.join("", "to_char(", c.getName(), ", 'YYYY-MM-DD HH:MI:SS.NNNNNN') AS ", c.getName());
+                            }
+                            return c.getName();
+                        }).collect(Collectors.joining(",")), " FROM ",
                         arguments.getSchemaUpperCase(), ".", tableName.toUpperCase(),
                         createOrder(tableName, tableKeys));
                 System.err.println("SQL:" + select);
@@ -231,8 +234,6 @@ public class DbTables {
 
     }
 
-    private static SimpleDateFormat timestampFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS");
-
     private String retrieve(ResultSet rs, Column column, boolean enableLobDump) {
         String name = column.getName().toUpperCase();
         String value;
@@ -253,10 +254,6 @@ public class DbTables {
                 value = ofNullable.isPresent() ? (enableLobDump ? Base64.getEncoder().encodeToString(ofNullable.get())
                         : "<CLOB@" + toHex(Base64.getEncoder().encodeToString(ofNullable.get()).hashCode()) + ">")
                         : nullString;
-                break;
-            case TIMESTMP:
-                Optional<Timestamp> timestamp = Optional.ofNullable(rs.getTimestamp(name));
-                value = timestamp.isPresent() ? timestampFormatter.format(timestamp.get()) : nullString;
                 break;
             default:
                 value = Optional.ofNullable(rs.getString(name)).orElse(nullString);
