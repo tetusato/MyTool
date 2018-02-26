@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.ibm.jp.isol.tetusato.db.printer.CsvPrinter;
+import com.ibm.jp.isol.tetusato.db.printer.CsvPrinter.CsvItem;
 import com.ibm.jp.isol.tetusato.db.printer.FilePrinter;
 import com.ibm.jp.isol.tetusato.db.printer.StdoutPrinter;
 
@@ -34,7 +35,7 @@ public class DbTables {
 
     public static enum ColType {
         // @formatter:off
-        INTEGER, SMALLINT, FLOAT, DOUBLE, CHAR, VARCHAR, LOGVAR, DECIMAL, GRAPHIC, VARGRAPH, LONGVARGRAPH,
+        INTEGER, SMALLINT, FLOAT, DOUBLE, CHAR, VARCHAR, LONGVAR, DECIMAL, GRAPHIC, VARGRAPH, LONGVARG,
         DATE, TIME, TIMESTMP, TIMESTZ,
         BLOB, CLOB, DBCLOB,
         ROWID, DISTINCT, XML, BIGINT, BINARY, VARBIN, DECFLOAT;
@@ -44,6 +45,25 @@ public class DbTables {
             case BLOB:
             case CLOB:
             case DBCLOB:
+                return true;
+            default:
+                break;
+            }
+            return false;
+        }
+        public static boolean isNumberType(ColType type) {
+            switch (type) {
+            case INTEGER:
+            case SMALLINT:
+            case FLOAT:
+            case DOUBLE:
+            case DECIMAL:
+            case BIGINT:
+            case BINARY:
+            case VARBIN:
+            case DECFLOAT:
+            case ROWID:
+            case DISTINCT:
                 return true;
             default:
                 break;
@@ -148,12 +168,13 @@ public class DbTables {
                 ResultSet rs = ps.executeQuery();
                 try (CsvPrinter printer = selectPrinter(fileName)) {
                     writeBom(printer);
-                    printer.printCsv(arguments.isBrindNull(), entry.getValue().stream().map(c -> c.getName().toUpperCase()).toArray());
+                    printer.printCsv(arguments.isBrindNull(), !arguments.isDb2Support(), entry.getValue().stream()
+                            .map(c -> new ColumnValue(ColType.CHAR, c.getName().toUpperCase())).toArray(CsvItem[]::new));
                     int rows = 0;
                     while (rs.next()) {
                         rows++;
-                        printer.printCsv(arguments.isBrindNull(), entry.getValue().stream()
-                                .map(c -> retrieve(rs, c, arguments.isEnableLobDump())).toArray());
+                        printer.printCsv(arguments.isBrindNull(), !arguments.isDb2Support(), entry.getValue().stream()
+                                .map(c -> retrieve(rs, c, arguments.isEnableLobDump())).toArray(CsvItem[]::new));
                     }
                     System.out.println(tableName + ":rows=" + rows);
                 }
@@ -234,7 +255,28 @@ public class DbTables {
 
     }
 
-    private String retrieve(ResultSet rs, Column column, boolean enableLobDump) {
+    public static class ColumnValue implements CsvItem {
+        ColType colType;
+        String value;
+        ColumnValue(ColType colType, String value) {
+            this.colType = colType;
+            this.value = value;
+        }
+        @Override
+        public boolean isQuotable() {
+            return !ColType.isNumberType(colType);
+        }
+        @Override
+        public String getValue() {
+            return value;
+        }
+        @Override
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
+
+    private CsvItem retrieve(ResultSet rs, Column column, boolean enableLobDump) {
         String name = column.getName().toUpperCase();
         String value;
         Optional<byte[]> ofNullable;
@@ -263,7 +305,8 @@ public class DbTables {
             value = "#" + e.getClass().getSimpleName() + ":" + e.getMessage() + "#(" + column.getName() + " "
                     + column.getColName() + ")";
         }
-        return value;
+        CsvItem  columnItem = new ColumnValue(column.colType, value);
+        return columnItem;
     }
 
     private byte[] toBytes(Blob blob) {

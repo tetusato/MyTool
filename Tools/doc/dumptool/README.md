@@ -92,7 +92,7 @@ __書式2__ : 出力先ディレクトリへ保存する、出力先ディレク
 
 この場合、ファイル内にはテーブル名の行があるので、完全な CSV ではない。
 
-__書式4__ : ロードデータとして取得したいので NULL は引用符なしの空状態で出力したい
+__書式4__ : Db2 Warehouse on Cloud のテーブル用ロードデータとして取得したいので NULL は引用符なしの空状態で出力したい
 
    java -DbrindNull=true -jar DumpTool.jar <プロパティーファイル名> <出力先ディレクトリ名> [対象テーブル名1[ 対象テーブル名2[ ...]]]
 
@@ -100,4 +100,14 @@ __書式4__ : ロードデータとして取得したいので NULL は引用符
 
    ```
    java -DbrindNull=true -jar DumpTool.jar mysettings.properties work EMP
+   ```
+
+__書式5__ : Db2 の import 文用ロードデータとして取得したいので NULL は引用符なしの空状態で、数値項目は二重引用符なしで出力したい
+
+   java -Dtool.db2support=true -DbrindNull=true -jar DumpTool.jar <プロパティーファイル名> <出力先ディレクトリ名> [対象テーブル名1[ 対象テーブル名2[ ...]]]
+
+　具体例:
+
+   ```
+   java -Dtool.db2support=true -DbrindNull=true -jar DumpTool.jar mysettings.properties work EMP
    ```

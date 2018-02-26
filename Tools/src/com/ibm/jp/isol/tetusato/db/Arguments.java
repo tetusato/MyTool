@@ -14,6 +14,7 @@ public class Arguments {
     private static final String PATTERN_TIMESTAMP_LONG = "@TL@";
     private boolean printStdout;
     private boolean brindNull;
+    private boolean db2Support;
     private String host;
     private String port = "50000";
     private String dbName = "BLUDB";
@@ -114,6 +115,10 @@ public class Arguments {
         return brindNull;
     }
 
+    public boolean isDb2Support() {
+        return db2Support;
+    }
+
     public void setDbName(String dbName) {
         this.dbName = dbName;
     }
@@ -150,6 +155,10 @@ public class Arguments {
 
     public void setBrindNull(boolean brindNull) {
         this.brindNull = brindNull;
+    }
+
+    public void setDb2Support(boolean db2Support) {
+        this.db2Support = db2Support;
     }
 
     public void setSubdir(String subdir) {

@@ -12,6 +12,12 @@ public class CsvPrinter implements Printer {
     private static final String SINGLE_DOUBLE_QUOTE = "\"";
     private static final String DOUBLE_DOUBLE_QUOTE = SINGLE_DOUBLE_QUOTE + SINGLE_DOUBLE_QUOTE;
 
+    public static interface CsvItem {
+        boolean isQuotable();
+        void setValue(String value);
+        String getValue();
+    }
+
     private Printer printer;
 
     public CsvPrinter(Printer printer) {
@@ -53,12 +59,12 @@ public class CsvPrinter implements Printer {
         return printer.write(value);
     }
 
-    public Printer printCsv(boolean brindNull, Object... args) {
-        String data = Stream.of(args).map(v -> Optional.ofNullable(v).orElse("<nil>").toString())
-                .map(escapeDoubleQuote).map(escapeCR).map(escapeLF).map(escapeHTAB).map(CsvPrinter::quote)
+    public Printer printCsv(boolean brindNull, boolean quoteNumber, CsvItem... args) {
+        String data = Stream.of(args).map(replaceNull)
+                .map(c -> (c.isQuotable() || quoteNumber) ? escapeSpecialValues.apply(c.getValue()) : c.getValue())
                 .collect(Collectors.joining(","));
         if (brindNull) {
-            data = data.replaceAll("\"<nil>\"", "");
+            data = data.replaceAll("(\"<nil>\"|<nil>)", "");
         }
         printer.println(data);
         return this;
@@ -68,6 +74,10 @@ public class CsvPrinter implements Printer {
         return SINGLE_DOUBLE_QUOTE + value + SINGLE_DOUBLE_QUOTE;
     }
 
+    private Function<CsvItem, CsvItem> replaceNull = c -> {
+        c.setValue(Optional.ofNullable(c.getValue()).orElse("<nil>").toString());
+        return c;
+    };
     private Function<String, Function<String, Function<String, String>>> escapeString = from -> to -> value -> escape(
             from, to, value);
     private Function<String, String> escapeDoubleQuote = escapeString.apply(SINGLE_DOUBLE_QUOTE)
@@ -75,6 +85,8 @@ public class CsvPrinter implements Printer {
     private Function<String, String> escapeCR = escapeString.apply("\r").apply("\\r");
     private Function<String, String> escapeLF = escapeString.apply("\n").apply("\\n");
     private Function<String, String> escapeHTAB = escapeString.apply("\t").apply("\\t");
+
+    private Function<String, String> escapeSpecialValues = v -> escapeDoubleQuote.andThen(escapeCR.andThen(escapeLF.andThen(escapeHTAB.andThen(CsvPrinter::quote)))).apply(v);
 
     private static String escape(String from, String to, String value) {
         return value.replace(from, to);

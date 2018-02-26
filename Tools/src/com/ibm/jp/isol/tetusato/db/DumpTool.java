@@ -16,6 +16,7 @@ public class DumpTool {
 
     private static final String SYS_TOOL_STDOUT = "tool.stdout";
     private static final String BRIND_NULL = "brindNull";
+    private static final String SYS_DB2_SUPPORT = "tool.db2support";
 
     public static void main(String... args) throws SQLException {
         Arguments arguments = createArguments(args);
@@ -30,6 +31,7 @@ public class DumpTool {
         Arguments arguments = new Arguments();
         arguments.setPrintStdout(Boolean.getBoolean(SYS_TOOL_STDOUT));
         arguments.setBrindNull(Boolean.getBoolean(BRIND_NULL));
+        arguments.setDb2Support(Boolean.getBoolean(SYS_DB2_SUPPORT));
         if (args.length < 1 && arguments.isPrintStdout() || args.length < 2 && !arguments.isPrintStdout()) {
             System.err.println("Command line arguments missing.");
             printUsage();
@@ -126,11 +128,13 @@ public class DumpTool {
     private static void printUsage() {
         System.out.println();
         System.out.println("USAGE:");
-        System.out.println(String.format("[-D%s=true] [-D%s=true] %s %s", BRIND_NULL, SYS_TOOL_STDOUT, DumpTool.class.getSimpleName(),
+        System.out.println(String.format("[-D%s=true] [-D%s=true] [-D%s=true] %s %s", BRIND_NULL, SYS_TOOL_STDOUT,
+                SYS_DB2_SUPPORT, DumpTool.class.getSimpleName(),
                 "propertyFilename dirname[#subdir] [tablename[ tablename...]]"));
         System.out.println();
         System.out.println("  Dump to stdout when the system property " + SYS_TOOL_STDOUT + " is true.");
         System.out.println("  Dump null as no quoted empty column data between column separator chars when the system property " + BRIND_NULL + " is true.");
+        System.out.println("  Dump number type column without quotations when the system property " + SYS_DB2_SUPPORT + " is true.");
         System.out.println();
         System.out.println("  property file key and value example: host,user and password is required.");
         System.out.println("      host=dashdb-xxxx-xxxx.bludmix.net");
