@@ -33,107 +33,6 @@ import com.ibm.jp.isol.tetusato.db.printer.StdoutPrinter;
 
 public class DbTables {
 
-    public static enum ColType {
-        // @formatter:off
-        INTEGER, SMALLINT, FLOAT, DOUBLE, CHAR, VARCHAR, LONGVAR, DECIMAL, GRAPHIC, VARGRAPH, LONGVARG,
-        DATE, TIME, TIMESTMP, TIMESTZ,
-        BLOB, CLOB, DBCLOB,
-        ROWID, DISTINCT, XML, BIGINT, BINARY, VARBIN, DECFLOAT;
-        // @formatter:on
-        public static boolean isLobType(ColType type) {
-            switch (type) {
-            case BLOB:
-            case CLOB:
-            case DBCLOB:
-                return true;
-            default:
-                break;
-            }
-            return false;
-        }
-        public static boolean isNumberType(ColType type) {
-            switch (type) {
-            case INTEGER:
-            case SMALLINT:
-            case FLOAT:
-            case DOUBLE:
-            case DECIMAL:
-            case BIGINT:
-            case BINARY:
-            case VARBIN:
-            case DECFLOAT:
-            case ROWID:
-            case DISTINCT:
-                return true;
-            default:
-                break;
-            }
-            return false;
-        }
-    }
-
-    public class Column {
-        private String name;
-        private String typeName;
-        private int length;
-        private int scale;
-        private ColType colType;
-
-        public Column(String name, String colType, int length, int scale) {
-            this.name = name.trim();
-            this.typeName = colType.trim();
-            this.colType = ColType.valueOf(typeName);
-            this.length = length;
-            this.scale = scale;
-        }
-
-        public String getColName() {
-            return typeName;
-        }
-
-        public ColType getColType() {
-            return colType;
-        }
-
-        public int getLength() {
-            return length;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getScale() {
-            return scale;
-        }
-
-        public String getTypeName() {
-            return typeName;
-        }
-
-        public void setColType(ColType colType) {
-            this.colType = colType;
-            this.typeName = colType.name();
-        }
-
-        public void setLength(int length) {
-            this.length = length;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public void setScale(int scale) {
-            this.scale = scale;
-        }
-
-        public void setTypeName(String typeName) {
-            this.typeName = typeName;
-            this.colType = ColType.valueOf(typeName);
-        }
-    }
-
     private static boolean debugging = Boolean.getBoolean("debugging");
 
     private String nullString = "<nil>";
@@ -157,7 +56,8 @@ public class DbTables {
                 String select = String.join("", "SELECT ",
                         entry.getValue().stream().map(c -> {
                             if (c.getColType() == ColType.TIMESTMP) {
-                                return String.join("", "to_char(", c.getName(), ", 'YYYY-MM-DD HH:MI:SS.NNNNNN') AS ", c.getName());
+                                return String.join("", "to_char(", c.getName(), ", 'YYYY-MM-DD HH:MI:SS.NNNNNN') AS ",
+                                        c.getName());
                             }
                             return c.getName();
                         }).collect(Collectors.joining(",")), " FROM ",
@@ -169,7 +69,8 @@ public class DbTables {
                 try (CsvPrinter printer = selectPrinter(fileName)) {
                     writeBom(printer);
                     printer.printCsv(arguments.isBrindNull(), !arguments.isDb2Support(), entry.getValue().stream()
-                            .map(c -> new ColumnValue(ColType.CHAR, c.getName().toUpperCase())).toArray(CsvItem[]::new));
+                            .map(c -> new ColumnValue(ColType.CHAR, c.getName().toUpperCase()))
+                            .toArray(CsvItem[]::new));
                     int rows = 0;
                     while (rs.next()) {
                         rows++;
@@ -245,8 +146,9 @@ public class DbTables {
     }
 
     private static void dump(Map<String, List<Column>> tableColumns) {
-        if (!debugging)
+        if (!debugging) {
             return;
+        }
         for (Entry<String, List<Column>> entry : tableColumns.entrySet()) {
             System.out.println(entry.getKey());
             entry.getValue().forEach(v -> System.out
@@ -258,18 +160,22 @@ public class DbTables {
     public static class ColumnValue implements CsvItem {
         ColType colType;
         String value;
+
         ColumnValue(ColType colType, String value) {
             this.colType = colType;
             this.value = value;
         }
+
         @Override
         public boolean isQuotable() {
             return !ColType.isNumberType(colType);
         }
+
         @Override
         public String getValue() {
             return value;
         }
+
         @Override
         public void setValue(String value) {
             this.value = value;
@@ -303,9 +209,9 @@ public class DbTables {
         } catch (SQLException e) {
             e.printStackTrace();
             value = "#" + e.getClass().getSimpleName() + ":" + e.getMessage() + "#(" + column.getName() + " "
-                    + column.getColName() + ")";
+                    + column.getTypeName() + ")";
         }
-        CsvItem  columnItem = new ColumnValue(column.colType, value);
+        CsvItem columnItem = new ColumnValue(column.getColType(), value);
         return columnItem;
     }
 
@@ -373,13 +279,13 @@ public class DbTables {
 
     public DbTables(Arguments arguments) {
         this.arguments = arguments;
-        this.nullString = arguments.isBrindNull() ? null : "<nil>";
+        nullString = arguments.isBrindNull() ? null : "<nil>";
         url = Stream.of("jdbc:db2://", arguments.getHost(), ":", arguments.getPort(), "/", arguments.getDbName())
                 .collect(Collectors.joining());
     }
 
     public List<String> collectColumnNames(ResultSet rs) throws SQLException {
-        List<String> collumnNames = new ArrayList<String>();
+        List<String> collumnNames = new ArrayList<>();
         int columns = rs.getMetaData().getColumnCount();
         ResultSetMetaData metaData = rs.getMetaData();
         for (int i = 0; i < columns; i++) {
@@ -399,7 +305,7 @@ public class DbTables {
     }
 
     public List<String> listTables(Connection conn) throws SQLException {
-        List<String> tableNames = new ArrayList<String>();
+        List<String> tableNames = new ArrayList<>();
         try (PreparedStatement ps = conn
                 .prepareStatement("SELECT * FROM SYSIBM.SYSTABLES WHERE CREATOR = ? ORDER BY NAME")) {
             ps.setString(1, arguments.getSchemaUpperCase());
@@ -422,7 +328,8 @@ public class DbTables {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
                         map.computeIfAbsent(tableName, t -> new ArrayList<>()).add(new Column(rs.getString("NAME"),
-                                rs.getString("COLTYPE"), rs.getInt("LENGTH"), rs.getInt("SCALE")));
+                                rs.getString("COLTYPE"), rs.getInt("LENGTH"), rs.getInt("SCALE"),
+                                rs.getObject("KEYSEQ") == null ? 0 : rs.getInt("KEYSEQ"), rs.getBoolean("NULLS")));
                     }
                 }
             }
