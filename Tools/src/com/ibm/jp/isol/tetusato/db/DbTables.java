@@ -56,7 +56,7 @@ public class DbTables {
                 String select = String.join("", "SELECT ",
                         entry.getValue().stream().map(c -> {
                             if (c.getColType() == ColType.TIMESTMP) {
-                                return String.join("", "to_char(", c.getName(), ", 'YYYY-MM-DD HH:MI:SS.NNNNNN') AS ",
+                                return String.join("", "to_char(", c.getName(), ", 'YYYY-MM-DD HH24:MI:SS.NNNNNN') AS ",
                                         c.getName());
                             }
                             return c.getName();
