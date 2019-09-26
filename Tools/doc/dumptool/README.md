@@ -25,6 +25,7 @@ CLOB と BLOB のカラムは Base64 でエンコードした状態で出力さ�
 1. dumptool.properties をテキストエディタで編集する
   1. host, user, password を書き換える (他はデフォルトのままでもとりあえず大丈夫)
   1. アクセスするテーブルのスキーマがユーザーと異なる場合は schema を設定する
+  1. SSLポートへ接続する場合は sslConnection に true を設定する
 
 
 ### 実行
