@@ -15,6 +15,7 @@ public class Arguments {
     private boolean printStdout;
     private boolean brindNull;
     private boolean db2Support;
+    private boolean sslConnection;
     private String host;
     private String port = "50000";
     private String dbName = "BLUDB";
@@ -69,6 +70,10 @@ public class Arguments {
 
     public String getFormattedFileName2(Date date, String tableName) {
         return String.format(filename2Format, date, tableName, subdir);
+    }
+
+    public boolean isSslConnection() {
+        return sslConnection;
     }
 
     public String getHost() {
@@ -135,6 +140,10 @@ public class Arguments {
     public void setFilename2(String filename2) {
         this.fileName2 = filename2;
         this.filename2Format = buildFormatPattern(this.fileName2);
+    }
+
+    public void setSslConnection(boolean sslConnection) {
+        this.sslConnection = sslConnection;
     }
 
     public void setHost(String host) {
@@ -224,7 +233,7 @@ public class Arguments {
 
     @Override
     public String toString() {
-        return "Arguments [brindNull=" + brindNull + ", printStdout=" + printStdout + ", host=" + host + ", port=" + port + ", dbName=" + dbName
+        return "Arguments [brindNull=" + brindNull + ", printStdout=" + printStdout + ", sslConnection=" + sslConnection + ", host=" + host + ", port=" + port + ", dbName=" + dbName
                 + ", user=" + user + ", userUpperCase=" + userUpperCase + ", schema=" + schema + ", schemaUpperCase="
                 + schemaUpperCase + ", password=" + password + ", dirname=" + dirName + ", subdir=" + subdir
                 + ", filename1=" + fileName1 + ", filename2=" + fileName2 + ", filename1Format=" + filename1Format

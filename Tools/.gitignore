@@ -1,3 +1,5 @@
+*.class
+
 /test.jpage
 /copier-dash33791.properties
 /copier.drop.txt
@@ -7,3 +9,7 @@
 /drop-dash0000.properties
 /drop-dash0000.txt
 /drop-dash33791.properties
+
+bin/
+/copier-dash100145.properties
+/dumptool-ssl.properties

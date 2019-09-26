@@ -282,6 +282,9 @@ public class DbTables {
         nullString = arguments.isBrindNull() ? null : "<nil>";
         url = Stream.of("jdbc:db2://", arguments.getHost(), ":", arguments.getPort(), "/", arguments.getDbName())
                 .collect(Collectors.joining());
+        if (arguments.isSslConnection()) {
+            url += ":sslConnection=true;";
+        }
     }
 
     public List<String> collectColumnNames(ResultSet rs) throws SQLException {

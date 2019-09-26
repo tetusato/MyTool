@@ -68,6 +68,7 @@ public class DumpTool {
             printUsage();
             System.exit(-1);
         }
+        arguments.setSslConnection(Boolean.valueOf(properties.getProperty("sslConnection")));
         arguments.setSchema(properties.getProperty("schema", arguments.getUser()));
         arguments.setPort(properties.getProperty("port", arguments.getPort()));
         arguments.setDbName(properties.getProperty("dbname", arguments.getDbName()));
@@ -137,6 +138,7 @@ public class DumpTool {
         System.out.println("  Dump number type column without quotations when the system property " + SYS_DB2_SUPPORT + " is true.");
         System.out.println();
         System.out.println("  property file key and value example: host,user and password is required.");
+        System.out.println("      sslConnection=false : default");
         System.out.println("      host=dashdb-xxxx-xxxx.bludmix.net");
         System.out.println("      port=50000  : default");
         System.out.println("      dbname=BLUDB  : default");
